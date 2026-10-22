@@ -513,7 +513,7 @@ def get_other_condition(args, for_doc):
 	budget_against_field = args.get("budget_against_field")
 =======
 def get_other_condition(params, child, parent, for_doc):
-	conditions = [parent.company == params.company, child.expense_account == params.expense_account]
+	conditions = [child.expense_account == params.expense_account]
 	budget_against_field = params.get("budget_against_field")
 >>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 
