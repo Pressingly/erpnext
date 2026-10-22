@@ -258,7 +258,17 @@ class BudgetValidation:
 				qb.from_(mr)
 				.inner_join(mri)
 				.on(mr.name == mri.parent)
+<<<<<<< HEAD
 				.select((Sum(IfNull(mri.stock_qty, 0) - IfNull(mri.ordered_qty, 0)) * mri.rate).as_("amount"))
+=======
+				.select(
+					Sum(
+						(IfNull(mri.stock_qty, 0) - IfNull(mri.ordered_qty, 0))
+						* IfNull(mri.rate, 0)
+						/ mri.conversion_factor
+					).as_("amount")
+				)
+>>>>>>> cba9380 (fix(accounts): count requested budget amounts in the purchase UOM)
 				.where(Criterion.all(conditions))
 				.run(as_dict=True)
 			):
