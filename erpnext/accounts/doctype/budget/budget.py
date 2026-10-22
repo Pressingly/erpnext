@@ -268,6 +268,7 @@ def compare_expense_with_budget(args, budget_amount, action_for, action, budget_
 			amount = args.ordered_amount
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	total_expense = args.actual_expense + amount
 =======
 	total_expense = flt(params.actual_expense + amount, frappe.get_precision("Budget", "budget_amount"))
@@ -277,6 +278,14 @@ def compare_expense_with_budget(args, budget_amount, action_for, action, budget_
 		if args.actual_expense > budget_amount:
 			error_tense = _("is already")
 			diff = args.actual_expense - budget_amount
+=======
+	total_expense = params.actual_expense + amount
+
+	if flt(total_expense - budget_amount, frappe.get_precision("Budget", "budget_amount")) > 0:
+		if params.actual_expense > budget_amount:
+			diff = params.actual_expense - budget_amount
+			_msg = _("{0} Budget for Account {1} against {2} {3} is {4}. It is already exceeded by {5}.")
+>>>>>>> f6f18a9 (fix(accounts): round the legacy budget difference, not the total)
 		else:
 			error_tense = _("will be")
 			diff = total_expense - budget_amount
