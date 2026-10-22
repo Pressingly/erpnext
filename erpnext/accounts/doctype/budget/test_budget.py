@@ -240,6 +240,30 @@ class TestBudget(unittest.TestCase):
 		with assert_raises_with_savepoint(self, BudgetError):
 			make_purchase_commitment("Material Request", "_Test Budget Requested Item", cost_center, 1050)
 
+	def test_budget_counts_requested_amount_in_purchase_uom(self):
+		make_item(
+			"_Test Budget Boxed Item",
+			{"is_stock_item": 0, "stock_uom": "Nos", "uoms": [{"uom": "Box", "conversion_factor": 10}]},
+		)
+		for use_legacy_controller in (False, True):
+			frappe.db.set_single_value(
+				"Accounts Settings", "use_legacy_budget_controller", use_legacy_controller
+			)
+			cost_center = make_budget_for_new_cost_center(
+				f"_Test Budget Purchase UOM {use_legacy_controller}"
+			)
+
+			# one box of 10 at 80 commits 80, so 300 more stays within the budget
+			make_purchase_commitment(
+				"Material Request",
+				"_Test Budget Boxed Item",
+				cost_center,
+				80,
+				uom="Box",
+				conversion_factor=10,
+			)
+			make_purchase_commitment("Material Request", "_Test Budget Loose Item", cost_center, 300)
+
 	def test_monthly_budget_crossed_for_po_in_foreign_currency(self):
 		budget = make_budget(
 			applicable_on_purchase_order=1,
@@ -547,7 +571,7 @@ def make_budget_for_new_cost_center(cost_center_name):
 	).cost_center
 
 
-def make_purchase_commitment(doctype, item_code, cost_center, rate, qty=1):
+def make_purchase_commitment(doctype, item_code, cost_center, rate, qty=1, uom="Nos", conversion_factor=1):
 	make_item(item_code, {"is_stock_item": 0, "stock_uom": "Nos"})
 	doc = frappe.new_doc(doctype)
 	doc.company = "_Test Company"
@@ -562,8 +586,8 @@ def make_purchase_commitment(doctype, item_code, cost_center, rate, qty=1):
 		{
 			"item_code": item_code,
 			"qty": qty,
-			"uom": "Nos",
-			"conversion_factor": 1,
+			"uom": uom,
+			"conversion_factor": conversion_factor,
 			"rate": rate,
 			"schedule_date": nowdate(),
 			"warehouse": "_Test Warehouse - _TC",
