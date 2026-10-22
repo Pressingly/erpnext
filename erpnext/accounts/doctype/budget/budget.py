@@ -330,6 +330,19 @@ def get_expense_breakup(args, currency, budget_against):
 		+ frappe.bold(fmt_money(args.actual_expense, currency=currency))
 		+ "</li>"
 	)
+<<<<<<< HEAD
+=======
+	mr_filters = common_filters.copy()
+	mr_filters.update(
+		{
+			"status": [["!=", "Stopped"]],
+			"docstatus": 1,
+			"material_request_type": "Purchase",
+			"schedule_date": [["between", [from_date, to_date]]],
+			"per_ordered": [["<", 100]],
+		}
+	)
+>>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 
 	msg += (
 		"<li>"
@@ -354,6 +367,19 @@ def get_expense_breakup(args, currency, budget_against):
 		+ "</li>"
 	)
 
+<<<<<<< HEAD
+=======
+	po_filters = common_filters.copy()
+	po_filters.update(
+		{
+			"status": [["!=", "Closed"]],
+			"docstatus": 1,
+			"transaction_date": [["between", [from_date, to_date]]],
+			"per_billed": [["<", 100]],
+		}
+	)
+
+>>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 	msg += (
 		"<li>"
 		+ frappe.utils.get_link_to_report(
@@ -394,6 +420,7 @@ def get_actions(args, budget):
 	return yearly_action, monthly_action
 
 
+<<<<<<< HEAD
 def get_requested_amount(args):
 	item_code = args.get("item_code")
 	condition = get_other_condition(args, "Material Request")
@@ -405,6 +432,28 @@ def get_requested_amount(args):
 		parent.material_request_type = 'Purchase' and parent.status != 'Stopped'""".format(condition),
 		item_code,
 		as_list=1,
+=======
+def get_requested_amount(params):
+	child = frappe.qb.DocType("Material Request Item")
+	parent = frappe.qb.DocType("Material Request")
+
+	data = (
+		frappe.qb.from_(child)
+		.join(parent)
+		.on(parent.name == child.parent)
+		.select(
+			# rate inside the aggregate: Sum(qty * rate) is the correct requested amount and is PG-valid
+			Coalesce(Sum((child.stock_qty - child.ordered_qty) * child.rate), 0).as_("amount")
+		)
+		.where(
+			(parent.docstatus == 1)
+			& (child.stock_qty > child.ordered_qty)
+			& Criterion.all(get_other_condition(params, child, parent, "Material Request"))
+			& (parent.material_request_type == "Purchase")
+			& (parent.status != "Stopped")
+		)
+		.run(as_list=1)
+>>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 	)
 
 	return data[0][0] if data else 0
@@ -441,16 +490,32 @@ def get_ordered_amount(params):
 				"amount"
 			)
 		)
+<<<<<<< HEAD
 		.where(Criterion.all(conditions))
+=======
+		.where(
+			(parent.docstatus == 1)
+			& (child.amount > child.billed_amt)
+			& (child.closed == 0)
+			& (parent.status != "Closed")
+			& Criterion.all(get_other_condition(params, child, parent, "Purchase Order"))
+		)
+>>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 		.run(as_list=1)
 	)
 
 	return data[0][0] if data else 0
 
 
+<<<<<<< HEAD
 def get_other_condition(args, for_doc):
 	condition = f"expense_account = {frappe.db.escape(args.expense_account)}"
 	budget_against_field = args.get("budget_against_field")
+=======
+def get_other_condition(params, child, parent, for_doc):
+	conditions = [parent.company == params.company, child.expense_account == params.expense_account]
+	budget_against_field = params.get("budget_against_field")
+>>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
 
 	if budget_against_field and args.get(budget_against_field):
 		condition += f" and child.{budget_against_field} = {frappe.db.escape(args.get(budget_against_field))}"
