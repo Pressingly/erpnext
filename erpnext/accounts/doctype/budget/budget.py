@@ -267,7 +267,11 @@ def compare_expense_with_budget(args, budget_amount, action_for, action, budget_
 		elif args.get("doctype") == "Purchase Order" and args.for_purchase_order:
 			amount = args.ordered_amount
 
+<<<<<<< HEAD
 	total_expense = args.actual_expense + amount
+=======
+	total_expense = flt(params.actual_expense + amount, frappe.get_precision("Budget", "budget_amount"))
+>>>>>>> fe95375 (fix(accounts): round budget comparisons to the budget amount precision)
 
 	if total_expense > budget_amount:
 		if args.actual_expense > budget_amount:
