@@ -762,8 +762,12 @@ def get_other_condition(params, for_doc):
 	condition = f"expense_account = {frappe.db.escape(params.expense_account)}"
 =======
 def get_other_condition(params, child, parent, for_doc):
+<<<<<<< HEAD
 	conditions = [parent.company == params.company, child.expense_account == params.expense_account]
 >>>>>>> 298b4fe (fix(accounts): include all items in budget commitments)
+=======
+	conditions = [child.expense_account == params.expense_account]
+>>>>>>> 3c62799 (refactor(accounts): drop redundant company filter from budget commitments)
 	budget_against_field = params.get("budget_against_field")
 
 	if budget_against_field and params.get(budget_against_field):
