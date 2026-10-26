@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 
-# frappe_docker v4.1.1 images/custom/Containerfile, with frappe pinned to a
-# Pressingly/frappe commit and erpnext installed from this build context
-# instead of an apps.json clone. Runtime scripts: docker/resources (see NOTICE).
+# Adapted from frappe_docker v4.1.1 images/custom/Containerfile (MIT, see
+# docker/resources/NOTICE): frappe pinned to a Pressingly/frappe commit and
+# erpnext installed from this build context instead of an apps.json clone.
 
 ARG PYTHON_VERSION=3.14
 ARG DEBIAN_BASE=trixie
@@ -17,6 +17,11 @@ ARG WKHTMLTOPDF_DISTRO=bookworm
 ARG INSTALL_CHROMIUM=true
 
 ARG NODE_VERSION=24
+
+# Build tool version, the same for every deployment. Pinned because the builder
+# calls bench's internal apps.sync, checked against this release.
+ARG FRAPPE_BENCH_VERSION=5.31.1
+
 ENV NVM_DIR=/home/frappe/.nvm
 ENV NVM_SYMLINK_CURRENT=true
 ENV PATH=${NVM_DIR}/current/bin/:${PATH}
@@ -83,7 +88,7 @@ RUN useradd -u 1000 -g 0 -d /home/frappe -ms /bin/bash frappe \
     && rm -rf /var/lib/apt/lists/* \
     && rm -fr /etc/nginx/sites-enabled/default \
     && mkdir -p /etc/nginx/snippets \
-    && pip3 install frappe-bench \
+    && pip3 install frappe-bench==${FRAPPE_BENCH_VERSION} \
     # Fixes for non-root nginx and logs to stdout
     && sed -i '/user www-data/d' /etc/nginx/nginx.conf \
     && ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log \
@@ -130,9 +135,9 @@ RUN apt-get update \
 
 USER frappe
 
-# Build-time by nature: frappe is compiled into the image. The commit is the
-# pin, so this erpnext commit alone identifies the image; ship a frappe change
-# by bumping FRAPPE_COMMIT in a commit here. It must carry frappe.mpass_sso.
+# Build-time by nature: frappe is installed into the image. FRAPPE_COMMIT pins
+# the frappe source; ship a frappe change by bumping it in a commit here. It
+# must carry frappe.mpass_sso.
 ARG FRAPPE_REPO=https://github.com/Pressingly/frappe
 ARG FRAPPE_COMMIT=9e568dbde508beb773dcc8dd02365cd82ea16654
 

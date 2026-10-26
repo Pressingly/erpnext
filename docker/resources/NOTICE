@@ -1,8 +1,11 @@
-The files under core/ are copied unchanged from frappe_docker
-(https://github.com/frappe/frappe_docker), release v4.1.1,
-commit d84154ae23ab7ae756dfe942e3f24dcd70d1fbda, resources/core/.
-They are used by the root Dockerfile and remain under frappe_docker's
-MIT license, reproduced below.
+Portions of this directory and the root Dockerfile come from frappe_docker
+(https://github.com/frappe/frappe_docker), release v4.1.1, commit
+d84154ae23ab7ae756dfe942e3f24dcd70d1fbda:
+
+- core/ is copied unchanged from resources/core/.
+- ../../Dockerfile is adapted from images/custom/Containerfile.
+
+Those portions remain under frappe_docker's MIT license, reproduced below.
 
 MIT License
 
