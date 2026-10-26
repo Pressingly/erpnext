@@ -1,0 +1,15 @@
+.git
+Dockerfile
+.dockerignore
+graphify-out
+
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+**/.DS_Store
+
+erpnext/public/dist
+erpnext/public/banking
+erpnext/www/banking.html
+erpnext/docs/current
