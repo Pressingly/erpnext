@@ -139,7 +139,7 @@ USER frappe
 # the frappe source; ship a frappe change by bumping it in a commit here. It
 # must carry frappe.mpass_sso.
 ARG FRAPPE_REPO=https://github.com/Pressingly/frappe
-ARG FRAPPE_COMMIT=0ac475df274e567120531d04b889c95d5c075627
+ARG FRAPPE_COMMIT=56073bf585a0e2dca8627a5d3d231adc95ae3962
 
 # bench init only clones branches and tags, so it gets the pinned commit from
 # a local checkout. The directory name becomes the app name.
