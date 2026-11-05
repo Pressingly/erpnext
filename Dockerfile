@@ -166,11 +166,26 @@ WORKDIR /home/frappe/frappe-bench
 
 COPY --chown=frappe:0 . apps/erpnext
 
+# Build-time by nature: HRMS is installed into the image from the
+# Pressingly/hrms fork at a pinned commit; ship an hrms change by bumping it
+# here. Once a site has it installed, every later image must carry it, and
+# HRMS_COMMIT moves with FRAPPE_COMMIT and erpnext on one release line.
+ARG HRMS_REPO=https://github.com/Pressingly/hrms
+ARG HRMS_COMMIT=3b7f8f2854a06fb9eb4d2785e20ddaf8ad750980
+
+RUN git init --quiet apps/hrms \
+  && git -C apps/hrms fetch --quiet --depth 1 "${HRMS_REPO}" "${HRMS_COMMIT}" \
+  && git -C apps/hrms checkout --quiet FETCH_HEAD
+
 # What bench get-app does after its clone: editable install, node packages,
-# apps.txt/apps.json registration. Then one build for every app, as bench init.
-RUN uv pip install --quiet -e apps/erpnext --python env/bin/python && \
-  (cd apps/erpnext && yarn install --check-files) && \
-  python3 -c 'from bench.bench import Bench; Bench(".").apps.sync(app_name="erpnext")' && \
+# apps.txt/apps.json registration. Then one build for every app, as bench init;
+# it runs each app's own `yarn build` too, which builds the HRMS PWA.
+RUN for app in erpnext hrms; do \
+    uv pip install --quiet -e "apps/${app}" --python env/bin/python && \
+    (cd "apps/${app}" && yarn install --check-files) && \
+    python3 -c "from bench.bench import Bench; Bench('.').apps.sync(app_name='${app}')" \
+    || exit 1; \
+  done && \
   bench build && \
   echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr && \
