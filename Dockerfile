@@ -164,8 +164,6 @@ RUN bench init \
 
 WORKDIR /home/frappe/frappe-bench
 
-COPY --chown=frappe:0 . apps/erpnext
-
 # Build-time by nature: HRMS is installed into the image from the
 # Pressingly/hrms fork at a pinned commit; ship an hrms change by bumping it
 # here. Once a site has it installed, every later image must carry it, and
@@ -177,9 +175,12 @@ RUN git init --quiet apps/hrms \
   && git -C apps/hrms fetch --quiet --depth 1 "${HRMS_REPO}" "${HRMS_COMMIT}" \
   && git -C apps/hrms checkout --quiet FETCH_HEAD
 
+COPY --chown=frappe:0 . apps/erpnext
+
 # What bench get-app does after its clone: editable install, node packages,
 # apps.txt/apps.json registration. Then one build for every app, as bench init;
-# it runs each app's own `yarn build` too, which builds the HRMS PWA.
+# it runs each app's own `yarn build` too, which builds the HRMS PWA and roster.
+# Their node_modules are build-only (about 740 MB) and stay out of the image.
 RUN for app in erpnext hrms; do \
     uv pip install --quiet -e "apps/${app}" --python env/bin/python && \
     (cd "apps/${app}" && yarn install --check-files) && \
@@ -187,6 +188,7 @@ RUN for app in erpnext hrms; do \
     || exit 1; \
   done && \
   bench build && \
+  rm -rf apps/hrms/frontend/node_modules apps/hrms/roster/node_modules && \
   echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr && \
   chmod -R g=u /home/frappe/frappe-bench
