@@ -139,7 +139,7 @@ USER frappe
 # the frappe source; ship a frappe change by bumping it in a commit here. It
 # must carry frappe.mpass_sso.
 ARG FRAPPE_REPO=https://github.com/Pressingly/frappe
-ARG FRAPPE_COMMIT=56073bf585a0e2dca8627a5d3d231adc95ae3962
+ARG FRAPPE_COMMIT=375bff60d05763cc435350f8f3b3755d68d8cf4a
 
 # bench init only clones branches and tags, so it gets the pinned commit from
 # a local checkout. The directory name becomes the app name.
@@ -169,7 +169,7 @@ WORKDIR /home/frappe/frappe-bench
 # here. Once a site has it installed, every later image must carry it, and
 # HRMS_COMMIT moves with FRAPPE_COMMIT and erpnext on one release line.
 ARG HRMS_REPO=https://github.com/Pressingly/hrms
-ARG HRMS_COMMIT=3b7f8f2854a06fb9eb4d2785e20ddaf8ad750980
+ARG HRMS_COMMIT=6d914c5221c83795730ec90bfed81829455fbc51
 
 RUN git init --quiet apps/hrms \
   && git -C apps/hrms fetch --quiet --depth 1 "${HRMS_REPO}" "${HRMS_COMMIT}" \
