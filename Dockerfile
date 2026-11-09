@@ -169,7 +169,7 @@ WORKDIR /home/frappe/frappe-bench
 # here. Once a site has it installed, every later image must carry it, and
 # HRMS_COMMIT moves with FRAPPE_COMMIT and erpnext on one release line.
 ARG HRMS_REPO=https://github.com/Pressingly/hrms
-ARG HRMS_COMMIT=6d914c5221c83795730ec90bfed81829455fbc51
+ARG HRMS_COMMIT=c8796fae6d2c2d660b75911f85fcb7e57338fea7
 
 RUN git init --quiet apps/hrms \
   && git -C apps/hrms fetch --quiet --depth 1 "${HRMS_REPO}" "${HRMS_COMMIT}" \
