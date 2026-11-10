@@ -175,20 +175,33 @@ RUN git init --quiet apps/hrms \
   && git -C apps/hrms fetch --quiet --depth 1 "${HRMS_REPO}" "${HRMS_COMMIT}" \
   && git -C apps/hrms checkout --quiet FETCH_HEAD
 
+# Build-time by nature: Frappe CRM ships in the image from the Pressingly/crm
+# fork at a pinned commit, but is optional: the bundle's erpnext-init installs
+# it only on deployments that opt in. CRM_COMMIT moves with FRAPPE_COMMIT on
+# the same release line as HRMS_COMMIT.
+ARG CRM_REPO=https://github.com/Pressingly/crm
+ARG CRM_COMMIT=19786bf033b62c9e686713234ca54d10f612a8af
+
+RUN git init --quiet apps/crm \
+  && git -C apps/crm fetch --quiet --depth 1 "${CRM_REPO}" "${CRM_COMMIT}" \
+  && git -C apps/crm checkout --quiet FETCH_HEAD
+
 COPY --chown=frappe:0 . apps/erpnext
 
 # What bench get-app does after its clone: editable install, node packages,
 # apps.txt/apps.json registration. Then one build for every app, as bench init;
-# it runs each app's own `yarn build` too, which builds the HRMS PWA and roster.
+# it runs each app's own `yarn build` too, which builds the HRMS PWA and roster
+# and the CRM SPA.
 # Their node_modules are build-only (about 740 MB) and stay out of the image.
-RUN for app in erpnext hrms; do \
+RUN for app in erpnext hrms crm; do \
     uv pip install --quiet -e "apps/${app}" --python env/bin/python && \
     (cd "apps/${app}" && yarn install --check-files) && \
     python3 -c "from bench.bench import Bench; Bench('.').apps.sync(app_name='${app}')" \
     || exit 1; \
   done && \
   bench build && \
-  rm -rf apps/hrms/frontend/node_modules apps/hrms/roster/node_modules && \
+  rm -rf apps/hrms/frontend/node_modules apps/hrms/roster/node_modules \
+    apps/crm/node_modules apps/crm/frontend/node_modules && \
   echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr && \
   chmod -R g=u /home/frappe/frappe-bench
