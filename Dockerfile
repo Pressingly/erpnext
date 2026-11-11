@@ -177,8 +177,9 @@ RUN git init --quiet apps/hrms \
 
 # Build-time by nature: Frappe CRM ships in the image from the Pressingly/crm
 # fork at a pinned commit, but is optional: the bundle's erpnext-init installs
-# it only on deployments that opt in. CRM_COMMIT moves with FRAPPE_COMMIT on
-# the same release line as HRMS_COMMIT.
+# it only on deployments that opt in. Once any site installs it, every later
+# image must carry it. CRM_COMMIT moves with FRAPPE_COMMIT on the same release
+# line as HRMS_COMMIT.
 ARG CRM_REPO=https://github.com/Pressingly/crm
 ARG CRM_COMMIT=19786bf033b62c9e686713234ca54d10f612a8af
 
