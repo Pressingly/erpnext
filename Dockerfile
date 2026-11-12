@@ -190,7 +190,8 @@ RUN git init --quiet apps/crm \
 # Build-time by nature: Raven ships in the image from the Pressingly/raven fork
 # at a pinned commit and is optional the same way as CRM: erpnext-init installs
 # it only where a deployment opts in, and once a site has it every later image
-# must carry it. RAVEN_COMMIT moves with FRAPPE_COMMIT on the same release line.
+# must carry it. Raven is versioned on its own: RAVEN_COMMIT must keep
+# FRAPPE_COMMIT inside its frappe-dependencies range (>=15.111, <17).
 ARG RAVEN_REPO=https://github.com/Pressingly/raven
 ARG RAVEN_COMMIT=d7a613f2f739def337980a94cbe01fe56dc84e7c
 
@@ -204,7 +205,7 @@ COPY --chown=frappe:0 . apps/erpnext
 # apps.txt/apps.json registration. Then one build for every app, as bench init;
 # it runs each app's own `yarn build` too, which builds the HRMS PWA and roster
 # and the CRM and Raven SPAs.
-# Their node_modules are build-only (about 740 MB) and stay out of the image.
+# Their node_modules are build-only and stay out of the image.
 RUN for app in erpnext hrms crm raven; do \
     uv pip install --quiet -e "apps/${app}" --python env/bin/python && \
     (cd "apps/${app}" && yarn install --check-files) && \
