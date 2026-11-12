@@ -181,7 +181,7 @@ RUN git init --quiet apps/hrms \
 # image must carry it. CRM_COMMIT moves with FRAPPE_COMMIT on the same release
 # line as HRMS_COMMIT.
 ARG CRM_REPO=https://github.com/Pressingly/crm
-ARG CRM_COMMIT=48e63889a847e23b8165dd9d97fdeca8ada2bf6a
+ARG CRM_COMMIT=5eafac9664fb428a3602fe7fb96df4f1083ccf07
 
 RUN git init --quiet apps/crm \
   && git -C apps/crm fetch --quiet --depth 1 "${CRM_REPO}" "${CRM_COMMIT}" \
@@ -192,7 +192,7 @@ RUN git init --quiet apps/crm \
 # it only where a deployment opts in, and once a site has it every later image
 # must carry it. RAVEN_COMMIT moves with FRAPPE_COMMIT on the same release line.
 ARG RAVEN_REPO=https://github.com/Pressingly/raven
-ARG RAVEN_COMMIT=712c810f82cb883e4165cf88caeede7631fa365a
+ARG RAVEN_COMMIT=d7a613f2f739def337980a94cbe01fe56dc84e7c
 
 RUN git init --quiet apps/raven \
   && git -C apps/raven fetch --quiet --depth 1 "${RAVEN_REPO}" "${RAVEN_COMMIT}" \
