@@ -181,20 +181,32 @@ RUN git init --quiet apps/hrms \
 # image must carry it. CRM_COMMIT moves with FRAPPE_COMMIT on the same release
 # line as HRMS_COMMIT.
 ARG CRM_REPO=https://github.com/Pressingly/crm
-ARG CRM_COMMIT=19786bf033b62c9e686713234ca54d10f612a8af
+ARG CRM_COMMIT=5eafac9664fb428a3602fe7fb96df4f1083ccf07
 
 RUN git init --quiet apps/crm \
   && git -C apps/crm fetch --quiet --depth 1 "${CRM_REPO}" "${CRM_COMMIT}" \
   && git -C apps/crm checkout --quiet FETCH_HEAD
+
+# Build-time by nature: Raven ships in the image from the Pressingly/raven fork
+# at a pinned commit and is optional the same way as CRM: erpnext-init installs
+# it only where a deployment opts in, and once a site has it every later image
+# must carry it. Raven is versioned on its own: RAVEN_COMMIT must keep
+# FRAPPE_COMMIT inside its frappe-dependencies range (>=15.111, <17).
+ARG RAVEN_REPO=https://github.com/Pressingly/raven
+ARG RAVEN_COMMIT=d7a613f2f739def337980a94cbe01fe56dc84e7c
+
+RUN git init --quiet apps/raven \
+  && git -C apps/raven fetch --quiet --depth 1 "${RAVEN_REPO}" "${RAVEN_COMMIT}" \
+  && git -C apps/raven checkout --quiet FETCH_HEAD
 
 COPY --chown=frappe:0 . apps/erpnext
 
 # What bench get-app does after its clone: editable install, node packages,
 # apps.txt/apps.json registration. Then one build for every app, as bench init;
 # it runs each app's own `yarn build` too, which builds the HRMS PWA and roster
-# and the CRM SPA.
-# Their node_modules are build-only (about 740 MB) and stay out of the image.
-RUN for app in erpnext hrms crm; do \
+# and the CRM and Raven SPAs.
+# Their node_modules are build-only and stay out of the image.
+RUN for app in erpnext hrms crm raven; do \
     uv pip install --quiet -e "apps/${app}" --python env/bin/python && \
     (cd "apps/${app}" && yarn install --check-files) && \
     python3 -c "from bench.bench import Bench; Bench('.').apps.sync(app_name='${app}')" \
@@ -202,7 +214,8 @@ RUN for app in erpnext hrms crm; do \
   done && \
   bench build && \
   rm -rf apps/hrms/frontend/node_modules apps/hrms/roster/node_modules \
-    apps/crm/node_modules apps/crm/frontend/node_modules && \
+    apps/crm/node_modules apps/crm/frontend/node_modules \
+    apps/raven/node_modules apps/raven/apps/*/node_modules apps/raven/packages/*/node_modules && \
   echo "{}" > sites/common_site_config.json && \
   find apps -mindepth 1 -path "*/.git" | xargs rm -fr && \
   chmod -R g=u /home/frappe/frappe-bench
